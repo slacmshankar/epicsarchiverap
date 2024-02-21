@@ -40,6 +40,9 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.zip.ZipEntry;
+
+import static org.junit.jupiter.api.Assertions.fail;
+
 /**
  * test for consolidate all pb files from short term storage and medium term storage to long term storage
  * @author Luofeng Li
@@ -91,6 +94,7 @@ public class ConsolidateETLJobsForOnePVTest {
         try {
             consolidate();
         } catch (AlreadyRegisteredException | IOException | InterruptedException e) {
+            fail();
             logger.error("Exception consolidating storage", e);
         }
     }
@@ -98,10 +102,10 @@ public class ConsolidateETLJobsForOnePVTest {
     @SuppressWarnings("deprecation")
     private void consolidate() throws AlreadyRegisteredException, IOException, InterruptedException {
         PVTypeInfo typeInfo = new PVTypeInfo(pvName, ArchDBRTypes.DBR_SCALAR_DOUBLE, true, 1);
-        String[] dataStores = new String[]{
-                storageplugin1.getURLRepresentation(),
-                storageplugin2.getURLRepresentation(),
-                storageplugin3.getURLRepresentation()
+        String[] dataStores = new String[] {
+            storageplugin1.getURLRepresentation(),
+            storageplugin2.getURLRepresentation(),
+            storageplugin3.getURLRepresentation()
         };
         typeInfo.setDataStores(dataStores);
         configService.updateTypeInfoForPV(pvName, typeInfo);
@@ -183,11 +187,17 @@ public class ConsolidateETLJobsForOnePVTest {
         Thread.sleep(4000);
         String[] filesShortTerm2 = shortTermFIle.list();
         String[] filesMediumTerm2 = mediumTermFIle.list();
-        Assertions.assertEquals(0, filesShortTerm2.length, "there should be no files int short term storage but there are still " + filesShortTerm2.length
-                + "PB files");
-        Assertions.assertEquals(0, filesMediumTerm2.length, "there should be no files int medium term storage but there are still " + filesMediumTerm2.length
-                + "PB files");
-        // ArchUnitTestConsolidateETLJobsForOnePVTest:_pb.zip
+        Assertions.assertEquals(
+                0,
+                filesShortTerm2.length,
+                "there should be no files int short term storage but there are still " + filesShortTerm2.length
+                        + "PB files");
+        Assertions.assertEquals(
+                0,
+                filesMediumTerm2.length,
+                "there should be no files int medium term storage but there are still " + filesMediumTerm2.length
+                        + "PB files");
+        // ArchUnitTestConsolidateETLJobsForOnePVTest+_pb.zip
         File zipFileOflongTermFile2 = new File(longTermFolderName + "/" + pvName + zip_suffix);
         Assertions.assertTrue(
                 zipFileOflongTermFile2.exists(),
@@ -210,7 +220,10 @@ public class ConsolidateETLJobsForOnePVTest {
             logger.info("fileName=" + dateFileName);
         }
 
-        Assertions.assertEquals(dayCount, fileNameMap.size(), "The number of files should be " + dayCount + ", actually, it is " + fileNameMap.size());
+        Assertions.assertEquals(
+                dayCount,
+                fileNameMap.size(),
+                "The number of files should be " + dayCount + ", actually, it is " + fileNameMap.size());
         Date beinningDate = new Date();
         beinningDate.setYear(currentYear - 1);
         beinningDate.setMonth(Calendar.DECEMBER);
@@ -224,8 +237,10 @@ public class ConsolidateETLJobsForOnePVTest {
             calendarBeingining.add(Calendar.DAY_OF_MONTH, 1);
             String fileNameTemp1 = df.format(calendarBeingining.getTime());
             logger.info("fileNameTemp1=" + fileNameTemp1);
-            Assertions.assertNotNull(fileNameMap.get(fileNameTemp1), "the file  whose name is like " + pvName + ":" + currentYear + "_" + fileNameTemp1
-                    + ".pb should exist,but it doesn't");
+            Assertions.assertNotNull(
+                    fileNameMap.get(fileNameTemp1),
+                    "the file  whose name is like " + pvName + ":" + currentYear + "_" + fileNameTemp1
+                            + ".pb should exist,but it doesn't");
         }
     }
 }

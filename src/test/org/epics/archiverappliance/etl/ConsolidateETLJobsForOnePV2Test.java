@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+
 /**
  *  test for consolidate all pb files from short term storage to medium term storage
  * @author Luofeng Li
@@ -81,18 +82,18 @@ public class ConsolidateETLJobsForOnePV2Test {
     @Test
     public void testAll() {
         try {
-            Consolidate();
+            consolidate();
         } catch (AlreadyRegisteredException | IOException | InterruptedException e) {
             logger.error(e);
         }
     }
 
-    private void Consolidate() throws AlreadyRegisteredException, IOException, InterruptedException {
+    private void consolidate() throws AlreadyRegisteredException, IOException, InterruptedException {
         PVTypeInfo typeInfo = new PVTypeInfo(pvName, ArchDBRTypes.DBR_SCALAR_DOUBLE, true, 1);
-        String[] dataStores = new String[]{
-                storageplugin1.getURLRepresentation(),
-                storageplugin2.getURLRepresentation(),
-                storageplugin3.getURLRepresentation()
+        String[] dataStores = new String[] {
+            storageplugin1.getURLRepresentation(),
+            storageplugin2.getURLRepresentation(),
+            storageplugin3.getURLRepresentation()
         };
         typeInfo.setDataStores(dataStores);
         configService.updateTypeInfoForPV(pvName, typeInfo);
@@ -152,7 +153,7 @@ public class ConsolidateETLJobsForOnePV2Test {
         String storageName = "MTS";
         Instant oneYearLaterTimeStamp = TimeUtils.convertFromEpochSeconds(
                 TimeUtils.getCurrentEpochSeconds()
-                        + 365 * PartitionGranularity.PARTITION_DAY.getApproxSecondsPerChunk(),
+                        + 365L * PartitionGranularity.PARTITION_DAY.getApproxSecondsPerChunk(),
                 0);
         ETLExecutor.runPvETLsBeforeOneStorage(configService, oneYearLaterTimeStamp, pvName, storageName);
         // make sure there are no pb files in short term storage , medium term storage and all files in long term

@@ -265,19 +265,22 @@ public class PVNames {
      * For certain characters, EPICS will not throw exceptions but generate spurious traffic which is hard to detect.
      * From the <a href="https://docs.epics-controls.org/en/latest/appdevguide/databaseDefinition.html#definitions-8">App dev Guide</a>
      * Valid characters are a-z A-Z 0-9 _ - + : [ ] &lt; &gt; ;
-     * We add the '.' character for supporting field names as well.
      * And we add the '/' character because some folks at FACET use this.
      * And we add the ',' character because some folks at LBL use this.
      * And we add the '#' character because some folks at FRIB use this.
      * And we add the '{' and the '}' character because some folks at BNL use this.
      * And we add the '^' character because some folks at LNL use this.
-     * And we add the ''' character for filter support: https://epics.anl.gov/base/R3-15/1-docs/filters.html
+     * <p>
+     * For field names using the filter support:
+     * We add the '.' character for supporting field names as well.
+     * And we add the ''' character for filter support: <a href="https://epics.anl.gov/base/R3-15/1-docs/filters.html">filters</a>
      * @param pvName The name of PV.
      * @return boolean True or False
      */
     public static boolean isValidPVName(String pvName) {
         if (pvName == null || pvName.isEmpty()) return false;
-        return validPVName.matcher(pvName).matches();
+        String basePVName = stripFieldNameFromPVName(pvName);
+        return validPVName.matcher(basePVName).matches();
     }
 
     /**

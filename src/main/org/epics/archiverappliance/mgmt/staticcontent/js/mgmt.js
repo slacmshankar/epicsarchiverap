@@ -30,22 +30,24 @@ function getPVQueryParam() {
   return pvQuery;
 }
 
-var patternForPVNames = /^[a-zA-Z0-9:_\-+\[\]<>;.\/,#{}^']+$/;
+const patternForPVNames = /^[a-zA-Z0-9:_\-+\[\];\/,#{}^<>]+$/;
 // Validates pvNames to make sure they are valid - pattern from CA developers guide.
+// Should match pattern in PVNames.validPVName
 function validatePVNames() {
-  var pvText = $("#archstatpVNames").val();
+  const pvText = $("#archstatpVNames").val();
   // Check for value, non-zero length and non-blanks
   if (!pvText || 0 === pvText.length || /^\s*$/.test(pvText)) {
     alert("No PVs have been specified for archiving.");
     return false;
   }
 
-  var pvS = pvText.split("\n");
-  var message = new String("The following PV names do not match the CA spec");
-  var errors = false;
-  for (var i = 0; i < pvS.length; i++) {
+  const pvS = pvText.split("\n");
+  let message = String("The following PV names do not match the CA spec");
+  let errors = false;
+  for (let i = 0; i < pvS.length; i++) {
     if (!pvS[i] || 0 === pvS[i] || /^\s*$/.test(pvS[i])) continue;
-    if (!patternForPVNames.test(pvS[i].trim())) {
+    let baseName = pvS[i].split(".", 2)[0];
+    if (!patternForPVNames.test(baseName.trim())) {
       message = message.concat("\n" + pvS[i]);
       errors = true;
     }

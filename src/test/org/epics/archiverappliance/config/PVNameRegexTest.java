@@ -1,12 +1,9 @@
 package org.epics.archiverappliance.config;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Small unit test to make sure the regex that checks for valid pv names does something reasonable
@@ -34,17 +31,18 @@ public class PVNameRegexTest {
                 "LN-AM{RadMon:1}Lvl:Raw-I",
                 "TBGR001E01.{'dbnd':{'abs':1}}",
                 "archappl:ar'h:sine",
-                "CrS-PHS:Cryo-D-0100:AmbientTemp.{'dbnd':{'rel':0.1}}");
+                "CrS-PHS:Cryo-D-0100:AmbientTemp.{'dbnd':{'rel':0.1}}",
+                "XDCM001I01.{flv('H-GX')}");
         for (String pvName : pvNames) {
-            assertTrue("Valid pvName is deemed invalid " + pvName, PVNames.isValidPVName(pvName));
-            assertEquals(pvName, PVNames.normalizePVName(pvName));
+            Assertions.assertTrue(PVNames.isValidPVName(pvName), "Valid pvName is deemed invalid " + pvName);
+            Assertions.assertEquals(pvName, PVNames.normalizePVName(pvName));
         }
     }
 
     @Test
     public void testNormalizePVName() {
         String pvName = "CrS-PHS:Cryo-D-0100:AmbientTemp.VAL";
-        assertEquals("CrS-PHS:Cryo-D-0100:AmbientTemp", PVNames.normalizePVName(pvName));
+        Assertions.assertEquals("CrS-PHS:Cryo-D-0100:AmbientTemp", PVNames.normalizePVName(pvName));
     }
 
     @Test
@@ -65,8 +63,8 @@ public class PVNameRegexTest {
                 "archappl:arch:sine=1.0",
                 "");
         for (String pvName : pvNames) {
-            assertFalse("Invalid pvName is deemed valid " + pvName, PVNames.isValidPVName(pvName));
+            Assertions.assertFalse(PVNames.isValidPVName(pvName), "Invalid pvName is deemed valid " + pvName);
         }
-        assertFalse("null is deemed invalid", PVNames.isValidPVName(null));
+        Assertions.assertFalse(PVNames.isValidPVName(null), "null is deemed invalid");
     }
 }

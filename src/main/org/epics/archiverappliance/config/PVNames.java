@@ -3,6 +3,7 @@ package org.epics.archiverappliance.config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -23,9 +24,31 @@ public class PVNames {
     public static final String V3_PREFIX = "ca://";
 
     private static final Logger logger = LogManager.getLogger(PVNames.class.getName());
-    private static final Pattern validPVNamePattern = Pattern.compile("[a-zA-Z0-9_\\-+:\\[\\]<>;./,#{}^]+");
-    private static final Pattern validFieldNamePattern = Pattern.compile("[a-zA-Z0-9_\\-+:\\[\\]<>;/#^]+");
-    private static final Pattern validFieldModifierPattern = Pattern.compile("\\{.*}");
+    private static final Pattern pvNamePattern = Pattern.compile("[a-zA-Z0-9_\\-+:\\[\\]<>;/,#{}^]+");
+    private static final Pattern fieldNamePattern = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*");
+    private static final Pattern fieldModifierPattern = Pattern.compile("\\{[a-zA-Z0-9:()-{}\"',]+}|\\[[0-9]+:[0-9]+]");
+    public static final String GROUP_PV_NAME = "PVNAME";
+    public static final String GROUP_FIELD_NAME = "FIELDNAME";
+    public static final String GROUP_FIELD_MODIFIER = "FIELDMODIFIER";
+
+    /*
+     * For certain characters, EPICS will not throw exceptions but generate spurious traffic which is hard to detect.
+     * From the <a href="https://docs.epics-controls.org/en/latest/appdevguide/databaseDefinition.html#definitions-8">App dev Guide</a>
+     * Valid characters are a-z A-Z 0-9 _ - + : [ ] &lt; &gt; ;
+     * And we add the '/' character because some folks at FACET use this.
+     * And we add the ',' character because some folks at LBL use this.
+     * And we add the '#' character because some folks at FRIB use this.
+     * And we add the '{' and the '}' character because some folks at BNL use this.
+     * And we add the '^' character because some folks at LNL use this.
+     * <p>
+     * For field names using the filter support:
+     * We add the '.' character for supporting field names as well.
+     * And we add the ''' character for filter support: <a href="https://epics.anl.gov/base/R3-15/1-docs/filters.html">filters</a>
+     */
+    public static final Pattern channelNamePattern = Pattern.compile("(?<" + GROUP_PV_NAME + ">"
+            + pvNamePattern.pattern()
+            + ")\\.?(?<" + GROUP_FIELD_NAME + ">" + fieldNamePattern.pattern()
+            + ")?\\.?(?<" + GROUP_FIELD_MODIFIER + ">" + fieldModifierPattern.pattern() + ")?");
 
     /**
      * Remove the .VAL, .HIHI etc portion of a channelName and return the plain pvName
@@ -40,46 +63,35 @@ public class PVNames {
         return channelName.split("\\.")[0];
     }
 
-    public static String getFieldName(String channelName) {
-        if (channelName == null || !channelName.contains(".")) {
-            return "";
-        }
-
-        String[] parts = channelName.split("\\.");
-        if (parts.length < 2) {
-            return "";
-        }
-
-        if (parts.length == 2 && validFieldModifierPattern.matcher(parts[1]).matches()) {
-            return "";
-        }
-        return parts[1];
-    }
-
     /**
-     * <a href="https://epics.anl.gov/base/R7-0/8-docs/filters.html">Field Modifiers</a> change output of a field.
      * @param channelName Input full name of the channel
-     * @return Only the field modifier if exists, "" otherwise.
+     * @return Only the group if exists, "" otherwise.
      */
-    public static String getFieldModifier(String channelName) {
+    private static String getGroupMatch(String channelName, String groupName) {
         if (channelName == null || !channelName.contains(".")) {
             return "";
         }
-
-        String[] parts = channelName.split("\\.");
-        if (parts.length < 2) {
+        Matcher matcher = PVNames.channelNamePattern.matcher(channelName);
+        if (!matcher.find()) {
             return "";
         }
-
-        if (parts.length == 2) {
-            if (validFieldModifierPattern.matcher(parts[1]).matches()) {
-                return parts[1];
-
-            } else {
+        try {
+            String result = matcher.group(groupName);
+            if (result == null) {
                 return "";
             }
+            return result;
+
+        } catch (IllegalStateException e) {
+            return "";
         }
-        return parts[2];
+    }
+    /**
+     * @param channelName Input full name of the channel
+     * @return Only the group if exists, "" otherwise.
+     */
+    public static String getFieldName(String channelName) {
+        return getGroupMatch(channelName, GROUP_FIELD_NAME);
     }
 
     /**
@@ -96,18 +108,19 @@ public class PVNames {
      * @param channelName  The name of PV.
      * @return boolean True or False
      */
-    public static boolean isField(String channelName) {
-        String fieldName = getFieldName(channelName);
+    private static boolean isField(String channelName) {
+        String fieldName = getGroupMatch(channelName, GROUP_FIELD_NAME);
         return !fieldName.isEmpty() && !fieldName.equals("VAL");
     }
 
     /**
      * Is this a field modifier?
-     * @param pvName  The name of PV.
+     * @param channelName  The name of PV.
      * @return boolean True or False
      */
-    public static boolean isFieldModifier(String pvName) {
-        String fieldModifier = getFieldModifier(pvName);
+    private static boolean isFieldModifier(String channelName) {
+
+        String fieldModifier = getGroupMatch(channelName, GROUP_FIELD_MODIFIER);
         return !fieldModifier.isEmpty();
     }
 
@@ -119,12 +132,12 @@ public class PVNames {
      */
     public static String normalizeChannelName(String channelName) {
         if (channelName == null || channelName.isEmpty()) {
-            return channelName;
+            return "";
         }
         if (channelName.contains(".VAL")) {
             String newName = channelNamePVName(channelName);
             if (isFieldModifier(channelName)) {
-                return newName + "." + getFieldModifier(channelName);
+                return newName + "." + getGroupMatch(channelName, GROUP_FIELD_MODIFIER);
             }
             return newName;
         }
@@ -141,7 +154,7 @@ public class PVNames {
      */
     public static String normalizePVNameWithField(String pvName, String fieldName) {
         if (pvName == null || pvName.isEmpty()) {
-            return pvName;
+            return "";
         }
         return channelNamePVName(pvName) + "." + fieldName;
     }
@@ -156,7 +169,7 @@ public class PVNames {
      */
     public static String transferField(String srcName, String destName) {
         if (isFieldOrFieldModifier(srcName)) {
-            return normalizePVNameWithField(destName, getFieldName(srcName));
+            return normalizePVNameWithField(destName, getGroupMatch(srcName, GROUP_FIELD_NAME));
         } else {
             return destName;
         }
@@ -189,7 +202,7 @@ public class PVNames {
         boolean pvDoesNotHaveField = !PVNames.isFieldOrFieldModifier(pvName);
 
         if (pvDoesNotHaveField) {
-            logger.debug("Looking for typeinfo for fieldless PV name " + pvName);
+            logger.debug("Looking for typeinfo for fieldless PV " + GROUP_PV_NAME + " " + pvName);
             // Typeinfo for full PV name
             {
                 PVTypeInfo typeInfo = configService.getTypeInfoForPV(pvName);
@@ -211,9 +224,9 @@ public class PVNames {
                 }
             }
         } else {
-            logger.debug("Looking for typeinfo for PV name with a field " + pvName);
+            logger.debug("Looking for typeinfo for PV " + GROUP_PV_NAME + " with a field " + pvName);
             String pvNameAlone = PVNames.channelNamePVName(pvName);
-            String fieldName = PVNames.getFieldName(pvName);
+            String fieldName = PVNames.getGroupMatch(pvName, GROUP_FIELD_NAME);
             // Typeinfo for fieldless PVName + archiveFields
             {
                 PVTypeInfo typeInfo = configService.getTypeInfoForPV(pvNameAlone);
@@ -315,6 +328,7 @@ public class PVNames {
 
     /**
      * Check to see if the channelName has valid characters.
+     * Uses the regex "(?&lt;PVNAME&gt;[a-zA-Z0-9_\-+:\[\]&lt;&gt;;/,#{}^]+)\.?(?&lt;FIELDNAME&gt;[a-zA-Z0-9_\-+:]+)?\.?(?&lt;FIELDMODIFIER&gt;\{.+})?"
      * For certain characters, EPICS will not throw exceptions but generate spurious traffic which is hard to detect.
      * From the <a href="https://docs.epics-controls.org/en/latest/appdevguide/databaseDefinition.html#definitions-8">App dev Guide</a>
      * Valid characters are a-z A-Z 0-9 _ - + : [ ] &lt; &gt; ;
@@ -325,8 +339,7 @@ public class PVNames {
      * And we add the '^' character because some folks at LNL use this.
      * <p>
      * For field names using the filter support:
-     * We add the '.' character for supporting field names as well.
-     * And we add the ''' character for filter support: <a href="https://epics.anl.gov/base/R3-15/1-docs/filters.html">filters</a>
+     * Filter support documentation: <a href="https://epics.anl.gov/base/R3-15/1-docs/filters.html">filters</a>
      * @param channelName The name of PV.
      * @return boolean True or False
      */
@@ -336,51 +349,23 @@ public class PVNames {
             logger.error("Channel " + channelName + " is invalid. Ends with '.'");
             return false;
         }
-        if (!isValidField(channelName)) {
+        logger.info(channelNamePattern.pattern());
+
+        Matcher matcher = channelNamePattern.matcher(channelName);
+        if (!matcher.find()) {
             return false;
         }
-        if (!isValidFieldModifier(channelName)) {
+
+        if (matcher.group(GROUP_PV_NAME).isEmpty()) {
+            logger.error("Channel " + channelName + " is invalid. Supported regex is " + channelNamePattern);
             return false;
         }
-        return isValidPVName(channelName);
-    }
 
-    private static boolean isValidPVName(String channelName) {
-        String basePVName = channelNamePVName(channelName);
-        boolean check = validPVNamePattern.matcher(basePVName).matches();
-        if (!check) {
-            logger.error("PV Name " + basePVName + " is invalid, for channel name " + channelName
-                    + " Supported regex is " + validPVNamePattern);
+        if (matcher.end() != channelName.length() || matcher.start() != 0) {
+            logger.error("PV Name " + channelName + " is invalid." + " Supported regex is " + channelNamePattern);
+            return false;
         }
-        return check;
-    }
-
-    private static boolean isValidField(String channelName) {
-        String fieldName = getFieldName(channelName);
-        if (fieldName.isEmpty()) {
-            return true;
-        }
-        boolean check = validFieldNamePattern.matcher(fieldName).matches();
-
-        if (!check) {
-            logger.error("Field Name " + fieldName + " is invalid, for channel name " + channelName
-                    + " Supported regex is " + validFieldNamePattern);
-        }
-        return check;
-    }
-
-    private static boolean isValidFieldModifier(String channelName) {
-        String fieldModifier = getFieldModifier(channelName);
-        if (fieldModifier.isEmpty()) {
-            return true;
-        }
-        boolean check = validFieldModifierPattern.matcher(fieldModifier).matches();
-        if (!check) {
-            logger.error("Field Modifier " + fieldModifier + " is invalid, for channel name " + channelName
-                    + " must start with '{' and end with '}'.");
-        }
-
-        return check;
+        return true;
     }
 
     /**

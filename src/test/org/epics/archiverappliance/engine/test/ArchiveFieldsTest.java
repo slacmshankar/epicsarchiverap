@@ -96,7 +96,7 @@ public class ArchiveFieldsTest {
             SIOCSetup.caput(pvName + ".HIHI", 85);
             SIOCSetup.caput(pvName + ".LOLO", 6);
             logger.info("Done changing fields");
-            Thread.sleep(30000);
+            Thread.sleep(3000);
 
             int hihiNum = 0;
             int loloNUm = 0;
@@ -117,10 +117,10 @@ public class ArchiveFieldsTest {
             Assertions.assertTrue(totalEvents >= 2, "We should have some events in the current samples " + totalEvents);
             Assertions.assertTrue(
                     hihiNum >= 2,
-                    "the number of values for test_0.HIHI num is " + hihiNum + " and <3 and" + " it should be >=3");
+                    "the number of values for " + pvName + ".HIHI num is " + hihiNum + " it should be >=2");
             Assertions.assertTrue(
                     loloNUm >= 2,
-                    "the number of values for test_0.LOLO num is " + loloNUm + " and <3 and" + " it should be >=3");
+                    "the number of values for " + pvName + ".LOLO num is " + loloNUm + " it should be >=2");
             Thread.sleep(3000);
 
         } catch (Exception e) {

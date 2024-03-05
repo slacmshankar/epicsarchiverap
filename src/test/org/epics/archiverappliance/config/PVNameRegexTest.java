@@ -33,7 +33,14 @@ public class PVNameRegexTest {
 
     private static final String valFieldName = ".VAL";
     private static final List<String> validFieldNames = List.of(".HIHI", ".LO", "");
-    private static final List<String> validFieldModifiers = List.of(".{'dbnd':{'abs':1}}", ".{flv('H-GX')}", "");
+    private static final List<String> validFieldModifiers = List.of(
+            ".{'dbnd':{'abs':1}}",
+            ".{flv('H-GX')}",
+            ".{'dbnd':{'abs':1.5}}",
+            ".{\"dbnd\":{'a':'b',\"s\",'b'}}",
+            ".{'dbnd':{'hi':1.5},'a':{'b':'c'}}",
+            ".[3:5]",
+            "");
 
     private static Stream<Arguments> provideValidChannelNames() {
         return validPVNames.stream()
@@ -86,6 +93,7 @@ public class PVNameRegexTest {
                 "archappl:sine.",
                 "archappl:sine.{",
                 "archappl:sine.}",
+                "archappl:sine.5",
                 ""
             })
     public void testInvalidPVNames(String pvName) {

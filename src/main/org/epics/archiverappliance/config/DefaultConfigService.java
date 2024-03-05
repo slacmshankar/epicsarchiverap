@@ -74,7 +74,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.PlatformLoggingMXBean;
 import java.net.InetAddress;
 import java.net.URI;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -301,10 +300,9 @@ public class DefaultConfigService implements ConfigService {
                 archApplPropertiesFileName = System.getenv(ARCHAPPL_PROPERTIES_FILENAME);
             }
             if (archApplPropertiesFileName == null) {
-                archApplPropertiesFileName = new URL(this.getClass()
-                                .getClassLoader()
-                                .getResource(DEFAULT_ARCHAPPL_PROPERTIES_FILENAME)
-                                .toString())
+                archApplPropertiesFileName = this.getClass()
+                        .getClassLoader()
+                        .getResource(DEFAULT_ARCHAPPL_PROPERTIES_FILENAME)
                         .getPath();
                 configlogger.info(
                         "Loading archappl.properties from the webapp classpath " + archApplPropertiesFileName);

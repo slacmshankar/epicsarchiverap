@@ -218,10 +218,8 @@ public class ConfigServiceForTests extends DefaultConfigService {
     @Override
     public InputStream getPolicyText() throws IOException {
         if (webInfClassesFolder != null) {
-            String policyURL = ConfigServiceForTests.class
-                    .getClassLoader()
-                    .getResource("policies.py")
-                    .getPath();
+            String policyURL =
+                    getClass().getClassLoader().getResource("policies.py").getPath();
             return new FileInputStream(policyURL);
         }
         return super.getPolicyText();

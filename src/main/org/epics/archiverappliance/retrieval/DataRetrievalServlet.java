@@ -269,7 +269,7 @@ public class DataRetrievalServlet extends HttpServlet {
     private static boolean useReduced(HttpServletRequest req) {
         boolean useReduced = false;
         String useReducedStr = req.getParameter("usereduced");
-        if (useReducedStr != null && !useReducedStr.isEmpty()) {
+        if (!StringUtils.isEmpty(useReducedStr)) {
             try {
                 useReduced = Boolean.parseBoolean(useReducedStr);
             } catch (Exception ex) {
@@ -428,7 +428,7 @@ public class DataRetrievalServlet extends HttpServlet {
         pmansProfiler.mark("After Appliance Info");
 
         String fieldName = PVNames.getFieldName(pvName);
-        if (fieldName != null && !fieldName.isEmpty() && typeInfo.checkIfFieldAlreadySepcified(fieldName)) {
+        if (!StringUtils.isEmpty(fieldName) && typeInfo.checkIfFieldAlreadySepcified(fieldName)) {
             logger.debug("We reset the pvName " + pvName + " to one from the typeinfo " + typeInfo.getPvName()
                     + " as that determines the name of the stream. Also using ExtraFieldsPostProcessor");
             pvName = typeInfo.getPvName();

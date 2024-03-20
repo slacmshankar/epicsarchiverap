@@ -17,8 +17,6 @@ import org.json.simple.JSONValue;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.text.DecimalFormat;
-import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -69,8 +67,7 @@ public class PVDetails implements BPLAction {
         addDetailedStatus(statuses, "Name (from Retrieval)", pvName);
         RetrievalMetrics retrievalMetrics =
                 configService.getRetrievalRuntimeState().getPVRetrievalMetrics(pvName);
-        if (retrievalMetrics == null)
-            retrievalMetrics = new RetrievalMetrics(0, null);
+        if (retrievalMetrics == null) retrievalMetrics = RetrievalMetrics.EMPTY_METRICS;
         statuses.addAll(retrievalMetrics.getDetails());
 
         return JSONValue.toJSONString(statuses);

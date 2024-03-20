@@ -205,8 +205,11 @@ public class RetrievalState {
         return retrievalMetricsMap;
     }
 
-    protected void putRetrievalMetrics(String pvName, RetrievalMetrics retrievalMetrics) {
-        retrievalMetricsMap.put(pvName, retrievalMetrics);
+    protected void updateRetrievalMetrics(String pvName, Instant time, String user) {
+        logger.info("Update metrics for " + pvName);
+
+        retrievalMetricsMap.putIfAbsent(pvName, new RetrievalMetrics());
+        retrievalMetricsMap.get(pvName).updateMetrics(time, user);
     }
 
     public RetrievalMetrics getPVRetrievalMetrics(String pvName) {

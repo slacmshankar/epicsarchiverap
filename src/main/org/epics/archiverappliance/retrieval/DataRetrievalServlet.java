@@ -378,11 +378,7 @@ public class DataRetrievalServlet extends HttpServlet {
             processPingPV(resp);
             return;
         }
-        RetrievalMetrics currentMetrics =
-                configService.getRetrievalRuntimeState().getPVRetrievalMetrics(pvName);
-        configService
-                .getRetrievalRuntimeState()
-                .putRetrievalMetrics(pvName, RetrievalMetrics.createUpdatedMetrics(currentMetrics, Instant.now()));
+
         RequestTimes requestTimesOb = getRequestTimes(req, resp, pvName);
 
         logger.debug("requestTimesOb is {}", requestTimesOb);
@@ -418,6 +414,7 @@ public class DataRetrievalServlet extends HttpServlet {
         String pvNameFromRequest = pvName;
 
         pvName = removeVal(pvName);
+        configService.getRetrievalRuntimeState().updateRetrievalMetrics(pvName, Instant.now(), req.getRemoteAddr());
 
         PVTypeInfo typeInfo = PVNames.determineAppropriatePVTypeInfo(pvName, configService);
         pmansProfiler.mark("After PVTypeInfo");
@@ -1043,6 +1040,8 @@ public class DataRetrievalServlet extends HttpServlet {
                     PVTypeInfo typeInfo = typeInfos.get(i);
                     HashMap<String, String> engineMetadata = fetchLatestMetadata ? engineMetadatas.get(i) : null;
                     PostProcessor postProcessor = postProcessors.get(i);
+
+                    configService.getRetrievalRuntimeState().updateRetrievalMetrics(pvName, Instant.now(), req.getRemoteAddr());
 
                     logger.debug("Done with the RetrievalResults; moving onto the individual event stream "
                             + "from each source for " + StringUtils.join(pvNames, ", "));

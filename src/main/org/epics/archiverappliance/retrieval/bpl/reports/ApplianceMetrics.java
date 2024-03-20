@@ -7,17 +7,16 @@
  *******************************************************************************/
 package org.epics.archiverappliance.retrieval.bpl.reports;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.HashMap;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.epics.archiverappliance.common.BPLAction;
 import org.epics.archiverappliance.config.ConfigService;
+import org.epics.archiverappliance.retrieval.RetrievalMetrics;
 import org.epics.archiverappliance.utils.ui.MimeTypeConstants;
 import org.json.simple.JSONValue;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Summary metrics for retrieval for an alliance.
@@ -26,13 +25,21 @@ import org.json.simple.JSONValue;
  */
 public class ApplianceMetrics implements BPLAction {
 
-	@Override
-	public void execute(HttpServletRequest req, HttpServletResponse resp, ConfigService configService) throws IOException {
-		resp.setContentType(MimeTypeConstants.APPLICATION_JSON);
-		try (PrintWriter out = resp.getWriter()) {
-			HashMap<String, String> ret = new HashMap<String, String>();
-			out.println(JSONValue.toJSONString(ret));
-		}
-	}
+    @Override
+    public void execute(HttpServletRequest req, HttpServletResponse resp, ConfigService configService)
+            throws IOException {
+        resp.setContentType(MimeTypeConstants.APPLICATION_JSON);
+        try (PrintWriter out = resp.getWriter()) {
+            out.println(summedMetricsJsonString(configService));
+        }
+    }
 
+    private static RetrievalMetrics calculateSummedMetrics(ConfigService configService) {
+        var allMetrics = configService.getRetrievalRuntimeState().getRetrievalMetrics();
+        return allMetrics.values().stream().reduce(new RetrievalMetrics(), RetrievalMetrics::sumMetrics);
+    }
+
+    public static String summedMetricsJsonString(ConfigService configService) {
+        return JSONValue.toJSONString(calculateSummedMetrics(configService).getDetails());
+    }
 }

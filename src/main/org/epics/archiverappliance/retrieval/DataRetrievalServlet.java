@@ -1041,7 +1041,9 @@ public class DataRetrievalServlet extends HttpServlet {
                     HashMap<String, String> engineMetadata = fetchLatestMetadata ? engineMetadatas.get(i) : null;
                     PostProcessor postProcessor = postProcessors.get(i);
 
-                    configService.getRetrievalRuntimeState().updateRetrievalMetrics(pvName, Instant.now(), req.getRemoteAddr());
+                    configService
+                            .getRetrievalRuntimeState()
+                            .updateRetrievalMetrics(pvName, Instant.now(), req.getRemoteAddr());
 
                     logger.debug("Done with the RetrievalResults; moving onto the individual event stream "
                             + "from each source for " + StringUtils.join(pvNames, ", "));

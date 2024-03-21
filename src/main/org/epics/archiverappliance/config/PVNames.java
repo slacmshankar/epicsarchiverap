@@ -1,5 +1,6 @@
 package org.epics.archiverappliance.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -56,8 +57,8 @@ public class PVNames {
      * @return String The plain pvName
      */
     public static String channelNamePVName(String channelName) {
-        if (channelName == null || channelName.isEmpty()) {
-            return channelName;
+        if (StringUtils.isEmpty(channelName)) {
+            return "";
         }
 
         return channelName.split("\\.")[0];
@@ -68,7 +69,7 @@ public class PVNames {
      * @return Only the group if exists, "" otherwise.
      */
     private static String getGroupMatch(String channelName, String groupName) {
-        if (channelName == null || !channelName.contains(".")) {
+        if (StringUtils.isEmpty(channelName)) {
             return "";
         }
         Matcher matcher = PVNames.channelNamePattern.matcher(channelName);
@@ -110,7 +111,7 @@ public class PVNames {
      */
     private static boolean isField(String channelName) {
         String fieldName = getGroupMatch(channelName, GROUP_FIELD_NAME);
-        return !fieldName.isEmpty() && !fieldName.equals("VAL");
+        return !StringUtils.equalsAny(fieldName, "", "VAL");
     }
 
     /**
@@ -131,7 +132,7 @@ public class PVNames {
      * @return String  normalizePVName
      */
     public static String normalizeChannelName(String channelName) {
-        if (channelName == null || channelName.isEmpty()) {
+        if (StringUtils.isEmpty(channelName)) {
             return "";
         }
         if (channelName.contains(".VAL")) {
@@ -153,7 +154,7 @@ public class PVNames {
      * @return String normalizePVNameWithField
      */
     public static String normalizePVNameWithField(String pvName, String fieldName) {
-        if (pvName == null || pvName.isEmpty()) {
+        if (StringUtils.isEmpty(pvName)) {
             return "";
         }
         return channelNamePVName(pvName) + "." + fieldName;
@@ -344,7 +345,7 @@ public class PVNames {
      * @return boolean True or False
      */
     public static boolean isValidChannelName(String channelName) {
-        if (channelName == null || channelName.isEmpty()) return false;
+        if (StringUtils.isEmpty(channelName)) return false;
         if (channelName.endsWith(".")) {
             logger.error("Channel " + channelName + " is invalid. Ends with '.'");
             return false;

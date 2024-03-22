@@ -15,7 +15,9 @@ import org.junit.jupiter.api.Test;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.epics.archiverappliance.engine.V4.PVAccessUtil.waitForStatusChange;
 
@@ -23,9 +25,11 @@ import static org.epics.archiverappliance.engine.V4.PVAccessUtil.waitForStatusCh
 public class MetricsTest {
 
     private static final Logger logger = LogManager.getLogger(MetricsTest.class.getName());
-    TomcatSetup tomcatSetup = new TomcatSetup();
+    private static final TomcatSetup tomcatSetup = new TomcatSetup();
     private static final String pvPrefix = MetricsTest.class.getSimpleName();
-    SIOCSetup siocSetup = new SIOCSetup(MetricsTest.class.getSimpleName());
+    private static final SIOCSetup siocSetup = new SIOCSetup(MetricsTest.class.getSimpleName());
+    private static final String mgmtUrl = "http://localhost:17665/mgmt/bpl/";
+    private static final String pvName = pvPrefix + "test_1";
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -52,11 +56,17 @@ public class MetricsTest {
                 "0",
                 "status",
                 "Working"));
-        String mgmtUrl = "http://localhost:17665/mgmt/bpl/";
 
-        assertApplianceMetricsMatch(mgmtUrl, expectedMetrics);
+        assertApplianceMetricsMatch(expectedMetrics);
 
-        String pvName = pvPrefix + "test_1";
+        archivePV();
+
+        expectedMetrics.put("pvCount", "1");
+        expectedMetrics.put("connectedPVCount", "1");
+        assertApplianceMetricsMatch(expectedMetrics);
+    }
+
+    private static void archivePV() {
 
         // Archive PV
         String archivePVURL = mgmtUrl + "archivePV?pv=pva://";
@@ -65,49 +75,42 @@ public class MetricsTest {
 
         GetUrlContent.getURLContentAsJSONArray(archivePVURL + pvURLName);
         waitForStatusChange(pvName, "Being archived", 60, mgmtUrl, 10);
-
-        expectedMetrics.put("pvCount", "1");
-        expectedMetrics.put("connectedPVCount", "1");
-        assertApplianceMetricsMatch(mgmtUrl, expectedMetrics);
     }
 
-    private static void assertApplianceMetricsMatch(String mgmtUrl, Map<String, String> expectedMetrics) {
-        JSONArray metricsResponse = GetUrlContent.getURLContentAsJSONArray(mgmtUrl + "getApplianceMetrics");
+    private static void assertApplianceMetricsMatch(Map<String, String> expectedMetrics) {
+        JSONArray metricsResponse = GetUrlContent.getURLContentAsJSONArray(MetricsTest.mgmtUrl + "getApplianceMetrics");
         Map<String, String> metricsResult = (Map<String, String>) metricsResponse.get(0);
 
+        partialAssertMap(expectedMetrics, metricsResult);
+    }
+
+    private static void partialAssertMap(Map<String, String> expectedMetrics, Map<String, String> metricsResult) {
         expectedMetrics.forEach((k, v) -> Assertions.assertEquals(v, metricsResult.get(k), "Fail check on " + k));
+    }
+
+    private static void assertApplianceMetricsDetailsMatch(Map<String, String> expectedMetrics, String appliance) {
+        JSONArray metricsResponse = GetUrlContent.getURLContentAsJSONArray(MetricsTest.mgmtUrl
+                + "getApplianceMetricsForAppliance?appliance=" + URLEncoder.encode(appliance, StandardCharsets.UTF_8));
+        List<Map<String, String>> metricsResult = (List<Map<String, String>>) metricsResponse;
+
+        Map<String, String> actual = convertToStringMap(metricsResult);
+        partialAssertMap(expectedMetrics, actual);
+    }
+
+    private static Map<String, String> convertToStringMap(List<Map<String, String>> expectedMetrics) {
+        return expectedMetrics.stream()
+                .collect((Collectors.toMap(m -> m.get("source") + m.get("name"), m -> m.get("value"))));
     }
 
     @Test
     void testApplianceMetricsForAppliance() {
 
-        Map<String, String> expectedMetrics = new HashMap<>(Map.of(
-                "connectedPVCount",
-                "0",
-                "instance",
-                "appliance0",
-                "pvCount",
-                "0",
-                "disconnectedPVCount",
-                "0",
-                "status",
-                "Working"));
-        String mgmtUrl = "http://localhost:17665/mgmt/bpl/";
+        Map<String, String> expectedMetrics = Map.of("mgmtAppliance Identity", "appliance0");
 
-        assertApplianceMetricsMatch(mgmtUrl, expectedMetrics);
+        assertApplianceMetricsDetailsMatch(expectedMetrics, "appliance0");
 
-        String pvName = pvPrefix + "test_1";
+        archivePV();
 
-        // Archive PV
-        String archivePVURL = mgmtUrl + "archivePV?pv=pva://";
-
-        String pvURLName = URLEncoder.encode(pvName, StandardCharsets.UTF_8);
-
-        GetUrlContent.getURLContentAsJSONArray(archivePVURL + pvURLName);
-        waitForStatusChange(pvName, "Being archived", 60, mgmtUrl, 10);
-
-        expectedMetrics.put("pvCount", "1");
-        expectedMetrics.put("connectedPVCount", "1");
-        assertApplianceMetricsMatch(mgmtUrl, expectedMetrics);
+        assertApplianceMetricsDetailsMatch(expectedMetrics, "appliance0");
     }
 }

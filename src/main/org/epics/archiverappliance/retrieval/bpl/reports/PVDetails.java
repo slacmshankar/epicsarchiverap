@@ -26,5 +26,4 @@ public class PVDetails implements org.epics.archiverappliance.common.reports.PVD
         if (retrievalMetrics == null) retrievalMetrics = RetrievalMetrics.EMPTY_METRICS;
         return new LinkedList<>(retrievalMetrics.details(configService));
     }
-
 }

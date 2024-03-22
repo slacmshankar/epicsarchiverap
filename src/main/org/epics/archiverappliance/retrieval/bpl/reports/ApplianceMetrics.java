@@ -25,5 +25,4 @@ public class ApplianceMetrics implements Metrics {
     public Map<String, String> metrics(ConfigService configService) {
         return calculateSummedMetrics(configService).getMetrics();
     }
-
 }

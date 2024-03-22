@@ -6,7 +6,6 @@ import org.epics.archiverappliance.config.ConfigService;
 
 import java.time.Instant;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -65,7 +64,8 @@ public class RetrievalMetrics implements Details {
     public LinkedList<Map<String, String>> details(ConfigService configService) {
         LinkedList<Map<String, String>> result = new LinkedList<>();
         result.add(metricDetail("Number of Retrieval Requests", String.valueOf(this.numberOfRequests)));
-        result.add(metricDetail( "Time of last Retrieval Request", TimeUtils.convertToHumanReadableString(lastRequest)));
-        result.add(metricDetail( "Number of unique users", String.valueOf(userIdentifiers.size())));
-        return result;    }
+        result.add(metricDetail("Time of last Retrieval Request", TimeUtils.convertToHumanReadableString(lastRequest)));
+        result.add(metricDetail("Number of unique users", String.valueOf(userIdentifiers.size())));
+        return result;
+    }
 }

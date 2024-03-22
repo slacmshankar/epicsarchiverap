@@ -41,6 +41,7 @@ public class ETLMetrics implements Details {
         metrics.put("maxETLPercentage", twoSignificantDigits.format(maxETLPercentage));
         return metrics;
     }
+
     @Override
     public LinkedList<Map<String, String>> details(ConfigService configService) {
         DecimalFormat twoSignificantDigits = new DecimalFormat("###,###,###,###,###,###.##");

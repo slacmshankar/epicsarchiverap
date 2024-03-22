@@ -9,7 +9,6 @@ import java.util.Map;
 
 public class InstanceReportDetails implements MetricsDetails {
 
-
     @Override
     public LinkedList<Map<String, String>> metricsDetails(ConfigService configService) {
         return RetrievalMetrics.calculateSummedMetrics(configService).details(configService);

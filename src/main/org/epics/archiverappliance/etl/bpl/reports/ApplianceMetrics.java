@@ -7,15 +7,11 @@
  *******************************************************************************/
 package org.epics.archiverappliance.etl.bpl.reports;
 
-import org.epics.archiverappliance.common.TimeUtils;
 import org.epics.archiverappliance.common.reports.Metrics;
 import org.epics.archiverappliance.config.ConfigService;
 import org.epics.archiverappliance.etl.common.ETLMetrics;
-import org.epics.archiverappliance.etl.common.ETLMetricsForLifetime;
 
-import java.text.DecimalFormat;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,12 +24,11 @@ public class ApplianceMetrics implements Metrics {
     @Override
     public Map<String, String> metrics(ConfigService configService) {
         HashMap<String, String> metrics = new HashMap<String, String>();
-        ETLMetrics metricsForLifetime =
-                configService.getETLLookup().getApplianceMetrics();
+        ETLMetrics metricsForLifetime = configService.getETLLookup().getApplianceMetrics();
         if (metricsForLifetime == null) {
             metrics.put("Startup", "In Progress");
         } else {
-           return metricsForLifetime.metrics();
+            return metricsForLifetime.metrics();
         }
 
         return metrics;

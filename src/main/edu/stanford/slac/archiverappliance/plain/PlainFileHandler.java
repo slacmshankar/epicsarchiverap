@@ -21,15 +21,21 @@ public interface PlainFileHandler extends PlainStreams {
 
     String pluginIdentifier();
 
-    PathResolver getPathResolver();
+    default PathResolver getPathResolver() {
+        return PathResolver.BASE_PATH_RESOLVER;
+    }
 
     default String getExtensionString() {
         return "." + pluginIdentifier();
     }
 
-    boolean useSearchForPositions();
+    default boolean useSearchForPositions() {
+        return true;
+    }
 
-    String rootFolderPath(String rootFolder);
+    default String rootFolderPath(String rootFolder) {
+        return rootFolder;
+    }
 
     void initCompression(Map<String, String> queryStrings);
 

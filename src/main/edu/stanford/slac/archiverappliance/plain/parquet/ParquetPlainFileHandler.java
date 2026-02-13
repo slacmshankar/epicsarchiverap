@@ -71,21 +71,6 @@ public class ParquetPlainFileHandler implements PlainFileHandler {
     }
 
     @Override
-    public PathResolver getPathResolver() {
-        return PathResolver.BASE_PATH_RESOLVER;
-    }
-
-    @Override
-    public boolean useSearchForPositions() {
-        return true;
-    }
-
-    @Override
-    public String rootFolderPath(String rootFolder) {
-        return rootFolder;
-    }
-
-    @Override
     public void initCompression(Map<String, String> queryStrings) {
         var readOptionsBuilder = ParquetReadOptions.builder().copy(parquetReadOptions);
         compressionCodecName = CompressionCodecName.valueOf(queryStrings.get(URLKey.COMPRESS.key()));

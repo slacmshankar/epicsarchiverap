@@ -23,6 +23,7 @@ import org.epics.archiverappliance.utils.simulation.SineGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
+@Disabled("Disabled until we add back support for zip compression thru NIO2")
 @Tag("slow")
 public class ZipETLTest {
     private static Logger logger = LogManager.getLogger(ZipETLTest.class.getName());

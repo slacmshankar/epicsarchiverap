@@ -93,10 +93,6 @@ Parquet supports various compression codecs. The archiver appliance specifically
 - **SNAPPY**: High speed, reasonable compression.
 - **ZSTD**: Excellent balance between compression ratio and speed.
 
-Protobuf supports zip per file compression:
-
-- **ZIP_PER_PV**: Compresses each PV's data into a single zip file.
-
 #### ZSTD Configuration
 
 When using ZSTD compression, several advanced configuration options are available via the storage plugin URL:

@@ -25,6 +25,7 @@ import org.epics.archiverappliance.retrieval.RemotableEventStreamDesc;
 import org.epics.archiverappliance.utils.simulation.SimulationEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -46,6 +47,7 @@ import java.util.concurrent.Future;
  * @author mshankar
  *
  */
+@Disabled("Disabled until we add back support for zip compression thru NIO2")
 public class ZipCachedFetchTest {
     private static final Logger logger = LogManager.getLogger(ZipCachedFetchTest.class.getName());
     String rootFolderName = ConfigServiceForTests.getDefaultPBTestFolder() + "/" + "ZipCachedFetchTest/";

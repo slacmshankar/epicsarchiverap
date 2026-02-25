@@ -6,55 +6,49 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'archiverdocs'
-copyright = '2024, Sky Brewer, Murali Shankar'
-authors = ["Murali Shankar", "Sky Brewer"]
+project = "Archiver Appliance"
+copyright = "2026-%Y, Archiver Appliance contributors"
+author = "Archiver Appliance contributors"
 
-release = '0.1'
-version = '0.1.0'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
     "myst_parser",
-    'sphinx.ext.duration',
-    'sphinx.ext.doctest',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.intersphinx',
-    'sphinxcontrib.mermaid',
+    "sphinx.ext.intersphinx",
+    "sphinx_copybutton",
+    "sphinxcontrib.openapi",
+    "sphinxext.opengraph",
+    "sphinxext.rediraffe",
 ]
 
-intersphinx_mapping = {
-    'python': ('https://docs.python.org/3/', None),
-    'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
-}
-intersphinx_disabled_domains = ['std']
-
-templates_path = ['_templates']
-exclude_patterns = []
-
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", ".venv", ".pixi"]
 
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 html_static_path = ['_static', '../../../build/docs']
 
-# Enable special syntax for admonitions (:::{directive})
-myst_admonition_enable = True
 
-# Enable definition lists (Term\n: Definition)
-myst_deflist_enable = True
+# -- Options for MyST's markdown -----------------------------------------------
+# https://myst-parser.readthedocs.io/en/latest/configuration.html
 
-# Allow colon fencing of directives
 myst_enable_extensions = [
+    "amsmath",
     "colon_fence",
     "deflist",
-    "attrs_inline"
+    "dollarmath",
+    "fieldlist",
+    "html_image",
+    "replacements",
+    "smartquotes",
+    "strikethrough",
+    "tasklist",
 ]
 
-# -- Options for EPUB output
-epub_show_urls = 'footnote'
+# -- Options for Sphinx Rediraffe --------------------------------------------
+# https://github.com/sphinx-doc/sphinxext-rediraffe
 
+rediraffe_redirects = "redirects.txt"

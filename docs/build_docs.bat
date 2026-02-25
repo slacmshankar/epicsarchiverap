@@ -5,8 +5,7 @@ IF NOT "%ERRORLEVEL%"=="0" (
     python -m venv .venv
     .venv\Scripts\activate.bat
     python -m pip install --upgrade --no-cache-dir pip setuptools
-    python -m pip install --upgrade --no-cache-dir sphinx readthedocs-sphinx-ext
-    python -m pip install --exists-action=w --no-cache-dir -r docs\requirements.txt
+    python -m pip install --upgrade --no-cache-dir .
 ) ELSE (
     echo "Using sphinx-build from the environment"
 )

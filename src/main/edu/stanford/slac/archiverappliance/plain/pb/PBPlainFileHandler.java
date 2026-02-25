@@ -78,8 +78,7 @@ public class PBPlainFileHandler implements PlainFileHandler {
             String rootFolder,
             String desc,
             PVNameToKeyMapping pv2key) {
-        return new PBAppendDataStateData(
-                partitionGranularity, rootFolder, desc, timestamp, pv2key, getPathResolver());
+        return new PBAppendDataStateData(partitionGranularity, rootFolder, desc, timestamp, pv2key, getPathResolver());
     }
 
     @Override
@@ -236,6 +235,6 @@ public class PBPlainFileHandler implements PlainFileHandler {
 
     @Override
     public String getPathKey(Path path) {
-            return path.toAbsolutePath().toString();
+        return path.toAbsolutePath().toString();
     }
 }

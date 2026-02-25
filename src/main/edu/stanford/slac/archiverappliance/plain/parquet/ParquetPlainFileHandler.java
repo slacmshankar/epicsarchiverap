@@ -5,7 +5,6 @@ import static edu.stanford.slac.archiverappliance.plain.parquet.ParquetInfo.base
 import edu.stanford.slac.archiverappliance.plain.AppendDataStateData;
 import edu.stanford.slac.archiverappliance.plain.EventFileWriter;
 import edu.stanford.slac.archiverappliance.plain.FileInfo;
-import edu.stanford.slac.archiverappliance.plain.PathResolver;
 import edu.stanford.slac.archiverappliance.plain.PlainFileHandler;
 import edu.stanford.slac.archiverappliance.plain.URLKey;
 import org.apache.parquet.ParquetReadOptions;

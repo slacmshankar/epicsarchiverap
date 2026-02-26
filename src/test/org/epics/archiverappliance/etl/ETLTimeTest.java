@@ -5,7 +5,6 @@ import static org.epics.archiverappliance.utils.ui.URIUtils.pluginString;
 import edu.stanford.slac.archiverappliance.plain.PlainStoragePlugin;
 import edu.stanford.slac.archiverappliance.plain.PlainStorageType;
 import edu.stanford.slac.archiverappliance.plain.URLKey;
-import edu.stanford.slac.archiverappliance.plain.pb.PBCompressionMode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
@@ -80,7 +79,7 @@ public class ETLTimeTest {
                 String.valueOf(4));
         return plainStorageType == PlainStorageType.PARQUET
                 ? List.of(Map.of(), Map.of(URLKey.COMPRESS.key(), CompressionCodecName.ZSTD.toString()), zstdOptions)
-                : List.of(Map.of(), Map.of(URLKey.COMPRESS.key(), PBCompressionMode.ZIP_PER_PV.toString()));
+                : List.of(Map.of(), Map.of(URLKey.COMPRESS.key(), "None"));
     }
 
     private static double getDataSizeInGBPerHour(CountFiles stsSizeVisitor) {

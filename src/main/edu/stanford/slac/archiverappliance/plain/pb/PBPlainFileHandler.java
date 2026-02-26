@@ -3,7 +3,6 @@ package edu.stanford.slac.archiverappliance.plain.pb;
 import edu.stanford.slac.archiverappliance.plain.AppendDataStateData;
 import edu.stanford.slac.archiverappliance.plain.EventFileWriter;
 import edu.stanford.slac.archiverappliance.plain.FileInfo;
-import edu.stanford.slac.archiverappliance.plain.PathResolver;
 import edu.stanford.slac.archiverappliance.plain.PlainFileHandler;
 import edu.stanford.slac.archiverappliance.plain.URLKey;
 import org.epics.archiverappliance.Event;
@@ -19,11 +18,8 @@ import org.epics.archiverappliance.etl.ETLDest;
 import org.epics.archiverappliance.etl.common.DefaultETLInfoListProcessor;
 import org.epics.archiverappliance.etl.common.ETLInfoListProcessor;
 import org.epics.archiverappliance.retrieval.channelarchiver.HashMapEvent;
-import org.epics.archiverappliance.utils.nio.ArchPaths;
 
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -36,38 +32,14 @@ public class PBPlainFileHandler implements PlainFileHandler {
     public static final String pbFileExtension = ".pb";
     public static int SIZE_THAT_DETERMINES_A_SMALL_FILE = 4 * 1024;
 
-    private PBCompressionMode compressionMode = PBCompressionMode.NONE;
-
     @Override
     public String pluginIdentifier() {
         return PB_PLUGIN_IDENTIFIER;
     }
 
     @Override
-    public PathResolver getPathResolver() {
-        return switch (compressionMode) {
-            case NONE -> PathResolver.BASE_PATH_RESOLVER;
-            case ZIP_PER_PV ->
-                (paths, createParentFolder, rootFolder, pvComponent, pvKey) ->
-                        paths.get(createParentFolder, rootFolder, pvKey + "_pb.zip!", pvComponent);
-        };
-    }
-
-    @Override
-    public boolean useSearchForPositions() {
-        return this.compressionMode.equals(PBCompressionMode.NONE);
-    }
-
-    @Override
-    public String rootFolderPath(String rootFolder) {
-        return this.compressionMode.equals(PBCompressionMode.NONE)
-                ? rootFolder
-                : rootFolder.replace(ArchPaths.ZIP_PREFIX, "/");
-    }
-
-    @Override
     public void initCompression(Map<String, String> queryStrings) {
-        this.compressionMode = PBCompressionMode.valueOf(queryStrings.get(URLKey.COMPRESS.key()));
+        // Compression for PB files is supported by specifying a NIO2 URI as the rootFolder.
     }
 
     @Override
@@ -77,7 +49,7 @@ public class PBPlainFileHandler implements PlainFileHandler {
 
     @Override
     public String toString() {
-        return ("PBPlainFileHandler{" + "compressionMode=" + compressionMode + '}');
+        return ("PBPlainFileHandler");
     }
 
     @Override
@@ -106,8 +78,7 @@ public class PBPlainFileHandler implements PlainFileHandler {
             String rootFolder,
             String desc,
             PVNameToKeyMapping pv2key) {
-        return new PBAppendDataStateData(
-                partitionGranularity, rootFolder, desc, timestamp, compressionMode, pv2key, getPathResolver());
+        return new PBAppendDataStateData(partitionGranularity, rootFolder, desc, timestamp, pv2key, getPathResolver());
     }
 
     @Override
@@ -249,35 +220,21 @@ public class PBPlainFileHandler implements PlainFileHandler {
 
     @Override
     public String updateRootFolderStr(String rootFolderStr) {
-        if (compressionMode.equals(PBCompressionMode.ZIP_PER_PV)) {
-            if (!rootFolderStr.startsWith(ArchPaths.ZIP_PREFIX)) {
-                String rootFolderWithPath = ArchPaths.ZIP_PREFIX + rootFolderStr;
-                logger.debug("Automatically adding url scheme for compression to rootfolder " + rootFolderWithPath);
-                return rootFolderWithPath;
-            }
-        }
         return rootFolderStr;
     }
 
     @Override
     public boolean backUpFiles(boolean backupFilesBeforeETL) {
-        return (this.compressionMode.equals(PBCompressionMode.NONE) && backupFilesBeforeETL);
+        return backupFilesBeforeETL;
     }
 
     @Override
     public Map<URLKey, String> urlOptions() {
-        if (compressionMode.equals(PBCompressionMode.NONE)) {
-            return Map.of();
-        }
-        return Map.of(URLKey.COMPRESS, compressionMode.name());
+        return Map.of();
     }
 
     @Override
     public String getPathKey(Path path) {
-        if (this.compressionMode.equals(PBCompressionMode.NONE)) {
-            return path.toAbsolutePath().toString();
-        }
-        return URLDecoder.decode(path.toUri().toString(), StandardCharsets.US_ASCII)
-                .replace(" ", "+");
+        return path.toAbsolutePath().toString();
     }
 }

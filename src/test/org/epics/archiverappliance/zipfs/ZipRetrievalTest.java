@@ -23,6 +23,7 @@ import org.epics.archiverappliance.utils.simulation.SineGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -40,6 +41,7 @@ import java.time.Instant;
  * @author mshankar
  *
  */
+@Disabled("Disabled until we add back support for zip compression thru NIO2")
 public class ZipRetrievalTest {
     private static Logger logger = LogManager.getLogger(ZipRetrievalTest.class.getName());
     File testFolder = new File(ConfigServiceForTests.getDefaultPBTestFolder() + File.separator + "ZipRetrievalTest");

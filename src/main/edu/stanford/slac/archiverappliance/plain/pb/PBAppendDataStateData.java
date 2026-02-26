@@ -32,14 +32,12 @@ public class PBAppendDataStateData extends AppendDataStateData {
 
     private static final Logger logger = LogManager.getLogger(PBAppendDataStateData.class.getName());
     public static final int BULK_BUFFER_INITIAL_CAPACITY = 1024 * 1024;
-    private final PBCompressionMode compressionMode;
 
     /**
      * @param partitionGranularity partitionGranularity of the PB plugin.
      * @param rootFolder           RootFolder of the PB plugin
      * @param desc                 Desc for logging purposes
      * @param lastKnownTimestamp   This is probably the most important argument here. This is the last known timestamp in this storage. If null, we assume time(0) for the last known timestamp.
-     * @param compressionMode      CompressionMode
      * @param pv2key               PVNameToKeyMapping
      */
     public PBAppendDataStateData(
@@ -47,11 +45,9 @@ public class PBAppendDataStateData extends AppendDataStateData {
             String rootFolder,
             String desc,
             Instant lastKnownTimestamp,
-            PBCompressionMode compressionMode,
             PVNameToKeyMapping pv2key,
             PathResolver pathResolver) {
         super(partitionGranularity, rootFolder, desc, lastKnownTimestamp, pv2key, pathResolver);
-        this.compressionMode = compressionMode;
     }
 
     /**
@@ -104,8 +100,6 @@ public class PBAppendDataStateData extends AppendDataStateData {
                 + partitionGranularity
                 + ", pv2key="
                 + pv2key
-                + ", compressionMode="
-                + compressionMode
                 + ", previousFilePath="
                 + previousFilePath
                 + ", currentEventsYear="

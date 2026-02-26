@@ -114,9 +114,7 @@ class ConsolidateETLJobsForOnePVTest {
                                 URLKey.ROOT_FOLDER,
                                 longTermFolderName,
                                 URLKey.PARTITION_GRANULARITY,
-                                "PARTITION_DAY",
-                                URLKey.COMPRESS,
-                                "ZIP_PER_PV")),
+                                "PARTITION_DAY")),
                 configService);
     }
 

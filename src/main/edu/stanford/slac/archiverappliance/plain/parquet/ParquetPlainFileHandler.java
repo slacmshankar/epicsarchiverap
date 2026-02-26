@@ -5,7 +5,6 @@ import static edu.stanford.slac.archiverappliance.plain.parquet.ParquetInfo.base
 import edu.stanford.slac.archiverappliance.plain.AppendDataStateData;
 import edu.stanford.slac.archiverappliance.plain.EventFileWriter;
 import edu.stanford.slac.archiverappliance.plain.FileInfo;
-import edu.stanford.slac.archiverappliance.plain.PathResolver;
 import edu.stanford.slac.archiverappliance.plain.PlainFileHandler;
 import edu.stanford.slac.archiverappliance.plain.URLKey;
 import org.apache.parquet.ParquetReadOptions;
@@ -68,21 +67,6 @@ public class ParquetPlainFileHandler implements PlainFileHandler {
     @Override
     public String pluginIdentifier() {
         return PARQUET_PLUGIN_IDENTIFIER;
-    }
-
-    @Override
-    public PathResolver getPathResolver() {
-        return PathResolver.BASE_PATH_RESOLVER;
-    }
-
-    @Override
-    public boolean useSearchForPositions() {
-        return true;
-    }
-
-    @Override
-    public String rootFolderPath(String rootFolder) {
-        return rootFolder;
     }
 
     @Override

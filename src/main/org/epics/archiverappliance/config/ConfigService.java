@@ -154,6 +154,8 @@ public interface ConfigService {
         ENGINE
     }
 
+    public static record CachedPVCounts(int totalPVCount, int pausedPVCount) implements Serializable {}
+
     /**
      * Have we completed all the startup steps?
      * @return boolean True or False
@@ -255,6 +257,11 @@ public interface ConfigService {
      * @return String All PVs being archiveed for this appliance
      */
     public Set<String> getPVsForThisAppliance();
+
+    /*
+     * For performance reasons, we cache the total PV count and the paused PV count for this appliance.
+     */
+    public CachedPVCounts getCachedPVCountsForThisAppliance();
 
     /**
      * Query this cluster's pvTypeInfos using the supplied the predicate and then run the supplied projection operator.

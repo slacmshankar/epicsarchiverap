@@ -8,8 +8,6 @@
 package org.epics.archiverappliance.engine.pv;
 
 import com.google.common.eventbus.Subscribe;
-import com.hazelcast.projection.Projections;
-import com.hazelcast.query.Predicates;
 import gov.aps.jca.Channel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,6 +16,8 @@ import org.epics.archiverappliance.common.TimeUtils;
 import org.epics.archiverappliance.config.ApplianceInfo;
 import org.epics.archiverappliance.config.ArchDBRTypes;
 import org.epics.archiverappliance.config.ConfigService;
+import org.epics.archiverappliance.config.ConfigService.CachedPVCounts;
+import org.epics.archiverappliance.config.ConfigService.EAABulkOperation;
 import org.epics.archiverappliance.config.MetaInfo;
 import org.epics.archiverappliance.config.PVNames;
 import org.epics.archiverappliance.config.PVTypeInfo;
@@ -41,8 +41,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -882,15 +882,20 @@ public class EngineContext {
         return ret;
     }
 
+    static class PVCounts implements EAABulkOperation<CachedPVCounts> {
+        @Override
+        public CachedPVCounts call(ConfigService configService) {
+            return configService.getCachedPVCountsForThisAppliance();
+        }
+    }
+
+
     public int getPausedPVCount() {
-        Collection<Object> pausedPVs = configService.queryPVTypeInfos(
-                Predicates.and(
-                        Predicates.equal(
-                                "applianceIdentity",
-                                configService.getMyApplianceInfo().getIdentity()),
-                        Predicates.equal("paused", true)),
-                Projections.singleAttribute("pvName"));
-        return pausedPVs.size();
+        Map<String, CachedPVCounts> pvCountsByAppliance =
+                configService.executeClusterWide(new PVCounts());
+        return pvCountsByAppliance
+                .getOrDefault(configService.getMyApplianceInfo().getIdentity(), new CachedPVCounts(0, 0))
+                .pausedPVCount();
     }
 
     public List<Map<String, String>> getCommandThreadDetails() {

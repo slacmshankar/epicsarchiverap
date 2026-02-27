@@ -73,8 +73,7 @@ public class ApplianceMetrics implements BPLAction {
                 return configService.getCachedPVCountsForThisAppliance();
             }
         }
-        Map<String, CachedPVCounts> pvCountsByAppliance =
-                configService.executeClusterWide(new PVCounts());
+        Map<String, CachedPVCounts> pvCountsByAppliance = configService.executeClusterWide(new PVCounts());
         Map<String, Long> pvCounts = new HashMap<String, Long>();
         for (Map.Entry<String, CachedPVCounts> entry : pvCountsByAppliance.entrySet()) {
             String applianceIdentity = entry.getKey();

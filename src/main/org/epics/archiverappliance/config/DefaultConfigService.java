@@ -823,8 +823,8 @@ public class DefaultConfigService implements ConfigService {
                                         }
                                     }
                                 } else {
-                                    if(typeInfo.getApplianceIdentity().equals(myApplianceInfo.getIdentity())) {
-                                        if(oldTypeInfo.isPaused() && !typeInfo.isPaused()) {
+                                    if (typeInfo.getApplianceIdentity().equals(myApplianceInfo.getIdentity())) {
+                                        if (oldTypeInfo.isPaused() && !typeInfo.isPaused()) {
                                             this.pausedPVCountOnThisAppliance--;
                                         } else if (!oldTypeInfo.isPaused() && typeInfo.isPaused()) {
                                             this.pausedPVCountOnThisAppliance++;

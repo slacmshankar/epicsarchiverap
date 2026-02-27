@@ -41,7 +41,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -889,10 +888,8 @@ public class EngineContext {
         }
     }
 
-
     public int getPausedPVCount() {
-        Map<String, CachedPVCounts> pvCountsByAppliance =
-                configService.executeClusterWide(new PVCounts());
+        Map<String, CachedPVCounts> pvCountsByAppliance = configService.executeClusterWide(new PVCounts());
         return pvCountsByAppliance
                 .getOrDefault(configService.getMyApplianceInfo().getIdentity(), new CachedPVCounts(0, 0))
                 .pausedPVCount();

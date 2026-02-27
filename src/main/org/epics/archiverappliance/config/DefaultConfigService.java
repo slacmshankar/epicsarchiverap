@@ -150,6 +150,11 @@ public class DefaultConfigService implements ConfigService {
     protected ConcurrentHashMap<String, ConcurrentSkipListSet<String>> parts2PVNamesForThisAppliance =
             new ConcurrentHashMap<String, ConcurrentSkipListSet<String>>();
 
+    // These metrics are not persisted but derived from the typeInfos map.
+    // We maintain it here for performance reasons.
+    protected int totalPVCountOnThisAppliance = 0;
+    protected int pausedPVCountOnThisAppliance = 0;
+
     // Map IP address to appliance identity
     protected IMap<String, String> clusterInet2ApplianceIdentity = null;
     protected IMap<String, Boolean> appliancesConfigLoaded = null;
@@ -754,6 +759,12 @@ public class DefaultConfigService implements ConfigService {
                                     logger.error("Exception persisting pvTypeInfo for pv " + pvName, ex);
                                 }
                             }
+                            if (typeInfo.getApplianceIdentity().equals(myIdentity)) {
+                                this.totalPVCountOnThisAppliance++;
+                                if (typeInfo.isPaused()) {
+                                    this.pausedPVCountOnThisAppliance++;
+                                }
+                            }
                         },
                         true);
         hzinstance
@@ -771,6 +782,12 @@ public class DefaultConfigService implements ConfigService {
                                     logger.error("Exception deleting pvTypeInfo for pv " + pvName, ex);
                                 }
                             }
+                            if (typeInfo.getApplianceIdentity().equals(myIdentity)) {
+                                this.totalPVCountOnThisAppliance--;
+                                if (typeInfo.isPaused()) {
+                                    this.pausedPVCountOnThisAppliance--;
+                                }
+                            }
                         },
                         true);
         hzinstance
@@ -778,6 +795,7 @@ public class DefaultConfigService implements ConfigService {
                 .addEntryListener(
                         (EntryUpdatedListener<Object, Object>) entryEvent -> {
                             PVTypeInfo typeInfo = (PVTypeInfo) entryEvent.getValue();
+                            PVTypeInfo oldTypeInfo = (PVTypeInfo) entryEvent.getOldValue();
                             String pvName = typeInfo.getPvName();
                             eventBus.post(new PVTypeInfoEvent(pvName, typeInfo, ChangeType.TYPEINFO_MODIFIED));
                             logger.debug(() -> "Received entryUpdated for pvTypeInfo");
@@ -786,6 +804,32 @@ public class DefaultConfigService implements ConfigService {
                                     persistanceLayer.putTypeInfo(pvName, typeInfo);
                                 } catch (Exception ex) {
                                     logger.error("Exception persisting pvTypeInfo for pv " + pvName, ex);
+                                }
+                            }
+                            if (oldTypeInfo != null) {
+                                if (!oldTypeInfo.getApplianceIdentity().equals(typeInfo.getApplianceIdentity())) {
+                                    logger.debug("PV " + pvName + " has changed appliance from "
+                                            + oldTypeInfo.getApplianceIdentity() + " to "
+                                            + typeInfo.getApplianceIdentity());
+                                    if (oldTypeInfo.getApplianceIdentity().equals(myApplianceInfo.getIdentity())) {
+                                        this.totalPVCountOnThisAppliance--;
+                                        if (oldTypeInfo.isPaused()) {
+                                            this.pausedPVCountOnThisAppliance--;
+                                        }
+                                    } else if (typeInfo.getApplianceIdentity().equals(myApplianceInfo.getIdentity())) {
+                                        this.totalPVCountOnThisAppliance++;
+                                        if (typeInfo.isPaused()) {
+                                            this.pausedPVCountOnThisAppliance++;
+                                        }
+                                    }
+                                } else {
+                                    if (typeInfo.getApplianceIdentity().equals(myApplianceInfo.getIdentity())) {
+                                        if (oldTypeInfo.isPaused() && !typeInfo.isPaused()) {
+                                            this.pausedPVCountOnThisAppliance--;
+                                        } else if (!oldTypeInfo.isPaused() && typeInfo.isPaused()) {
+                                            this.pausedPVCountOnThisAppliance++;
+                                        }
+                                    }
                                 }
                             }
                         },
@@ -1033,6 +1077,11 @@ public class DefaultConfigService implements ConfigService {
     public Set<String> getPVsForThisAppliance() {
         Set<String> ret = this.getPVsForAppliance(this.myApplianceInfo);
         return ret;
+    }
+
+    @Override
+    public CachedPVCounts getCachedPVCountsForThisAppliance() {
+        return new CachedPVCounts(this.totalPVCountOnThisAppliance, this.pausedPVCountOnThisAppliance);
     }
 
     @Override
@@ -1812,6 +1861,10 @@ public class DefaultConfigService implements ConfigService {
                             parts2PVNamesForThisAppliance.put(part, new ConcurrentSkipListSet<String>());
                         }
                         parts2PVNamesForThisAppliance.get(part).add(pvName);
+                    }
+                    this.totalPVCountOnThisAppliance++;
+                    if (typeInfo.isPaused()) {
+                        this.pausedPVCountOnThisAppliance++;
                     }
 
                     objectCount++;

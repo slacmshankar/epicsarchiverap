@@ -7,14 +7,13 @@
  *******************************************************************************/
 package org.epics.archiverappliance.mgmt.bpl.reports;
 
-import com.hazelcast.projection.Projections;
-import com.hazelcast.query.Predicates;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.epics.archiverappliance.common.BPLAction;
 import org.epics.archiverappliance.config.ApplianceInfo;
 import org.epics.archiverappliance.config.ConfigService;
-import org.epics.archiverappliance.config.PVTypeInfo;
+import org.epics.archiverappliance.config.ConfigService.CachedPVCounts;
+import org.epics.archiverappliance.config.ConfigService.EAABulkOperation;
 import org.epics.archiverappliance.utils.ui.GetUrlContent;
 import org.epics.archiverappliance.utils.ui.MimeTypeConstants;
 import org.json.simple.JSONObject;
@@ -26,8 +25,6 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -70,13 +67,18 @@ public class ApplianceMetrics implements BPLAction {
      * Return a map of appliance identity -> PV counts.
      */
     static Map<String, Long> getAppliancePVCounts(ConfigService configService) {
-        Map<String, Long> pvCounts = configService
-                .queryPVTypeInfos(
-                        Predicates.alwaysTrue(),
-                        Projections.<Map.Entry<String, PVTypeInfo>, String>singleAttribute("applianceIdentity"))
-                .stream()
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-        for (String applianceIdentity : pvCounts.keySet()) {
+        class PVCounts implements EAABulkOperation<CachedPVCounts> {
+            @Override
+            public CachedPVCounts call(ConfigService configService) {
+                return configService.getCachedPVCountsForThisAppliance();
+            }
+        }
+        Map<String, CachedPVCounts> pvCountsByAppliance = configService.executeClusterWide(new PVCounts());
+        Map<String, Long> pvCounts = new HashMap<String, Long>();
+        for (Map.Entry<String, CachedPVCounts> entry : pvCountsByAppliance.entrySet()) {
+            String applianceIdentity = entry.getKey();
+            CachedPVCounts cachedPVCounts = entry.getValue();
+            pvCounts.put(applianceIdentity, Long.valueOf(cachedPVCounts.totalPVCount()));
             logger.info("PVCount {} Count {}", applianceIdentity, pvCounts.get(applianceIdentity));
         }
         return pvCounts;
